@@ -46,36 +46,39 @@
 
 #include <ApplicationServices/ApplicationServices.h>
 
-const CGKeyCode ENTER     = (CGKeyCode)76;
-const CGKeyCode RIGHT_OPT = (CGKeyCode)61;
-const int RIGHT_OPT_DOWN  = 524608;
-const int MODIFIER_UP     = 256;
-
+const CGKeyCode RIGHT_CTRL = (CGKeyCode)63;
+const CGKeyCode RIGHT_OPT  = (CGKeyCode)61;
+const int RIGHT_CTRL_DOWN   = 262401;
+const int RIGHT_OPT_DOWN   = 524608;
+const int MODIFIER_UP      = 256;
 
 CGEventRef myCGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
-        
-  CGKeyCode keycode = (CGKeyCode)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+  // debug
+  //fprintf(stderr, "Caught event!\n");
   CGEventFlags modifiers = CGEventGetFlags(event);
 
-  // Debug
-  // printf("Type: %i Modifiers: %i Keycode: %i\n", type, (int)modifiers, keycode);
+  if ((modifiers & RIGHT_OPT_DOWN) == RIGHT_OPT_DOWN) {
+    //CGKeyCode keycode = (CGKeyCode)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+    //fprintf(stderr, "\nMINE!\n");
+    //fprintf(stderr, "Type: %i Modifiers: %i Keycode: %i\n", type, (int)modifiers, keycode);
+    modifiers &= ~RIGHT_OPT_DOWN;
+    //fprintf(stderr, "Type: %i Modifiers: %i Keycode: %i\n", type, (int)modifiers, keycode);
+    modifiers |= RIGHT_CTRL_DOWN;
+    //fprintf(stderr, "Type: %i Modifiers: %i Keycode: %i\n", type, (int)modifiers, keycode);
+    CGEventSetFlags(event, modifiers);
 
-  if (modifiers == RIGHT_OPT_DOWN && keycode == RIGHT_OPT) {
-    // Debug
-    // printf("Swap!\n");
-    CGEventRef press, release;
-    press   = CGEventCreateKeyboardEvent(NULL, ENTER, true);
-    release = CGEventCreateKeyboardEvent(NULL, ENTER, false);
-    CGEventPost(kCGHIDEventTap, press);
-    CGEventPost(kCGHIDEventTap, release);
+    // debug
+    //fprintf(stderr, "After swap!\n");
+    //CGEventFlags modifiers2 = CGEventGetFlags(event);
+    //CGKeyCode keycode2 = (CGKeyCode)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+    //fprintf(stderr, "Type: %i Modifiers: %i Keycode: %i\n", type, (int)modifiers2, keycode2);
   }
-
   return event;
 }
 
-
 int main(void) {
 
+  fprintf(stderr, "Starting up.\n");
   CFMachPortRef      eventTap;
   CFRunLoopSourceRef runLoopSource;
 
@@ -83,7 +86,8 @@ int main(void) {
   eventTap = CGEventTapCreate(kCGSessionEventTap,
                               kCGHeadInsertEventTap,
                               0,
-                              CGEventMaskBit(kCGEventFlagsChanged),
+                              kCGEventMaskForAllEvents,
+                              //CGEventMaskBit(kCGEventFlagsChanged) | CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(kCGEventKeyUp),
                               myCGEventCallback,
                               &oldFlags);
   if (!eventTap) {
