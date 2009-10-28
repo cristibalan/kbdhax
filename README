@@ -1,0 +1,5 @@
+Changes right alt key with a control key on a macbook keyboard.
+
+I'm using this on 10.5 added with lingon as a user daemon.
+
+Beware: With some versions I used to get a bunch of gray screens when plugging/unplugging an external keyboard.
